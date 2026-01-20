@@ -1,63 +1,86 @@
 import { useState } from 'react';
-import logo from '../assets/logo.png';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, Home, LayoutDashboard, BarChart3, Info } from 'lucide-react';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-22">
+    <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center space-x-4">
-              <div className="bg-white rounded-xl p-3 shadow-lg">
-                <img src={logo} alt="AI Resume Pro Logo" className="h-14 w-14 object-contain" />
-              </div>
-              <span className="text-3xl font-bold text-white tracking-tight">
-SkillSight              </span>
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
             </div>
-          </div>
+            <div>
+              <h1 className="text-xl font-semibold text-slate-900">SkillSight</h1>
+              <p className="text-xs text-slate-500 hidden sm:block">AI Resume Analyzer</p>
+            </div>
+          </Link>
           
-          {/* Navigation Links */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-6">
-              <a
-                href="#home"
-                className="text-white hover:bg-white hover:bg-opacity-20 px-5 py-2 rounded-lg text-base font-medium transition-all duration-200 ease-in-out transform hover:scale-105"
-              >
-                Home
-              </a>
-              <a
-                href="#dashboard"
-                className="text-white hover:bg-white hover:bg-opacity-20 px-5 py-2 rounded-lg text-base font-medium transition-all duration-200 ease-in-out transform hover:scale-105"
-              >
-                Dashboard
-              </a>
-            </div>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-2">
+            <Link
+              to="/"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
+              }`}
+            >
+              <Home size={18} />
+              Home
+            </Link>
+            <Link
+              to="/dashboard"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/dashboard') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
+              }`}
+            >
+              <LayoutDashboard size={18} />
+              Dashboard
+            </Link>
+            <Link
+              to="/analytics"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/analytics') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
+              }`}
+            >
+              <BarChart3 size={18} />
+              Analytics
+            </Link>
+            <Link
+              to="/about"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/about') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
+              }`}
+            >
+              <Info size={18} />
+              About
+            </Link>
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button 
               onClick={() => setIsOpen(!isOpen)}
-              className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-all duration-200"
+              className="p-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+              aria-label="Toggle menu"
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isOpen ? (
-                  <path d="M6 18L18 6M6 6l12 12"></path>
-                ) : (
-                  <path d="M4 6h16M4 12h16M4 18h16"></path>
-                )}
-              </svg>
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
@@ -65,20 +88,56 @@ SkillSight              </span>
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="md:hidden bg-white bg-opacity-10 backdrop-blur-sm">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <a
-              href="#home"
-              className="text-white hover:bg-white hover:bg-opacity-20 block px-3 py-2 rounded-lg text-base font-medium transition-all duration-200"
+        <div className="md:hidden border-t border-slate-200 bg-white">
+          <div className="px-4 py-3 space-y-1">
+            <Link
+              to="/"
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
+              }`}
+              onClick={() => setIsOpen(false)}
             >
+              <Home size={18} />
               Home
-            </a>
-            <a
-              href="#dashboard"
-              className="text-white hover:bg-white hover:bg-opacity-20 block px-3 py-2 rounded-lg text-base font-medium transition-all duration-200"
+            </Link>
+            <Link
+              to="/dashboard"
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/dashboard') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
+              }`}
+              onClick={() => setIsOpen(false)}
             >
+              <LayoutDashboard size={18} />
               Dashboard
-            </a>
+            </Link>
+            <Link
+              to="/analytics"
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/analytics') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              <BarChart3 size={18} />
+              Analytics
+            </Link>
+            <Link
+              to="/about"
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/about') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              <Info size={18} />
+              About
+            </Link>
           </div>
         </div>
       )}

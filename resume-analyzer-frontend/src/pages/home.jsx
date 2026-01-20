@@ -1,275 +1,223 @@
-import React, { useState } from 'react';
-import { Upload, FileText, CheckCircle, AlertCircle, Plus, Briefcase, Trash2, Sparkles } from 'lucide-react';
-import { DotLottiePlayer } from '@dotlottie/react-player';
+import React from 'react';
+import { Sparkles, Brain, Target, Zap, ArrowRight, CheckCircle, Users, FileText, TrendingUp } from 'lucide-react';
+
 export default function Home() {
-  const [file, setFile] = useState(null);
-  const [requiredSkills, setRequiredSkills] = useState("");
-  const [results, setResults] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  // --- JOB LIBRARY STATES ---
-  const [jobs, setJobs] = useState([]);
-  const [jobTitle, setJobTitle] = useState("");
-  const [selectedJobId, setSelectedJobId] = useState(null);
-
-  // Function to create and save a job
-  const handleCreateJob = () => {
-    if (!jobTitle || !requiredSkills) {
-      alert("Please enter a Job Title and Required Skills first.");
-      return;
-    }
-    const newJob = {
-      id: Date.now(),
-      title: jobTitle,
-      skills: requiredSkills
-    };
-    setJobs([...jobs, newJob]);
-    setJobTitle("");
-    setRequiredSkills("");
-  };
-
-  // Function to select a job from the library
-  const selectJob = (job) => {
-    setSelectedJobId(job.id);
-    setRequiredSkills(job.skills);
-  };
-
-  // Function to delete a job
-  const deleteJob = (id) => {
-    setJobs(jobs.filter(j => j.id !== id));
-    if (selectedJobId === id) {
-      setSelectedJobId(null);
-      setRequiredSkills("");
-    }
-  };
-
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile && selectedFile.type === "application/pdf") {
-      setFile(selectedFile);
-    } else {
-      alert("Please upload a valid PDF file.");
-      setFile(null);
-    }
-  };
-
-const handleUpload = async () => {
-    if (!file || !requiredSkills) {
-      alert("Please select a job and upload a resume.");
-      return;
-    }
-
-    setLoading(true);
-    const formData = new FormData();
-    formData.append('resume', file);
-    formData.append('requiredSkills', requiredSkills);
-
-    try {
-      const response = await fetch('http://localhost:5000/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      // CHECK IF RESPONSE IS OK
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Server Error");
-      }
-
-      const data = await response.json();
-      
-      // ENSURE DATA IS VALID BEFORE SETTING
-      if (data && typeof data.score !== 'undefined') {
-        setResults(data); 
-      } else {
-        throw new Error("Invalid response format from server.");
-      }
-
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Error: " + error.message);
-      setResults(null); // Reset results to prevent white screen
-    } finally {
-      setLoading(false);
-    }
-};
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-8 flex flex-col items-center">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-5xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 flex items-center justify-center gap-3">
-          <Sparkles className="text-indigo-600" size={40} />
-          AI Resume Analyzer
-        </h1>
-        <p className="text-gray-600 text-lg font-medium">Save job roles and analyze candidate fitment with AI precision.</p>
-      </div>
-
-      <div className="w-full max-w-6xl flex flex-col md:flex-row gap-8">
-
-        {/* --- MAIN ANALYZER --- */}
-        <div className="flex-1 bg-white p-10 rounded-3xl shadow-2xl border border-purple-100">
-          {!results ? (
-            <>
-              <h2 className="text-2xl font-bold mb-8 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3 border-b-2 border-purple-100 pb-4">
-                <Briefcase className="text-purple-600" size={28} /> Job & Skill Setup
-              </h2>
-
-              <div className="space-y-6 mb-10">
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2 flex items-center gap-2">
-                    Job Role Title
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full p-4 border-2 border-purple-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                    placeholder="e.g. Software Engineer"
-                    value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Required Skills (Comma separated)</label>
-                  <textarea
-                    className="w-full p-4 border-2 border-purple-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none h-32 transition-all"
-                    placeholder="e.g. JavaScript, React, SQL, Project Management"
-                    value={requiredSkills}
-                    onChange={(e) => setRequiredSkills(e.target.value)}
-                  />
-                  <button
-                    onClick={handleCreateJob}
-                    className="mt-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:from-indigo-700 hover:to-purple-700 active:scale-95 transition-all shadow-lg"
-                  >
-                    <Plus size={18} /> Save to Job Library
-                  </button>
-                </div>
-              </div>
-
-              <div className="border-3 border-dashed border-purple-300 rounded-3xl p-12 flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50">
-                {/* The Moving AI Scan Icon - Updated Tag */}
-                <div className="w-48 h-48 -mt-4">
-                  <DotLottiePlayer
-                    src="/Scanning.json"
-                    loop
-                    autoplay
-                  />
-                </div>
-
-                <label className="cursor-pointer bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white px-10 py-4 rounded-2xl font-bold hover:shadow-2xl hover:scale-105 transition-all shadow-xl">
-                  Select Resume (PDF)
-                  <input type="file" className="hidden" accept=".pdf" onChange={handleFileChange} />
-                </label>
-                {file && (
-                  <div className="mt-6 bg-green-50 border-2 border-green-300 text-green-700 px-6 py-3 rounded-2xl font-bold flex items-center gap-2">
-                    <CheckCircle size={20} />
-                    {file.name}
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={handleUpload}
-                disabled={loading}
-                className="w-full mt-10 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white py-5 rounded-2xl font-black text-xl hover:shadow-2xl hover:scale-105 disabled:bg-gray-300 disabled:hover:scale-100 shadow-xl transition-all"
-              >
-                {loading ? "🤖 AI ANALYSIS IN PROGRESS..." : "✨ ANALYZE NOW"}
-              </button>
-            </>
-          ) : (
-            /* --- RESULTS --- */
-            <div className="animate-in fade-in zoom-in duration-500">
-              <div className="flex justify-between items-center border-b-2 border-purple-100 pb-6 mb-8">
-                <h2 className="text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">ANALYSIS REPORT</h2>
-                <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white px-8 py-4 rounded-3xl text-4xl font-black shadow-2xl">
-                  {results.score}%
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-3xl border-2 border-green-300 shadow-lg">
-                  <h3 className="text-green-800 font-bold mb-5 flex items-center gap-2 text-lg">
-                    <CheckCircle size={24} /> Skills Found
-                  </h3>
-                  <div className="flex flex-wrap gap-3">
-                    {results.matched.map((s, i) => (
-                      <span key={i} className="bg-white text-green-700 px-4 py-2 rounded-xl text-sm font-bold shadow-md border-2 border-green-200 uppercase">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-red-50 to-rose-50 p-6 rounded-3xl border-2 border-red-300 shadow-lg">
-                  <h3 className="text-red-800 font-bold mb-5 flex items-center gap-2 text-lg">
-                    <AlertCircle size={24} /> Missing Skills
-                  </h3>
-                  <div className="flex flex-wrap gap-3">
-                    {results.missing.map((s, i) => (
-                      <span key={i} className="bg-white text-red-700 px-4 py-2 rounded-xl text-sm font-bold shadow-md border-2 border-red-200 uppercase">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => { setResults(null); setFile(null); setSelectedJobId(null); setRequiredSkills(""); }}
-                className="w-full mt-12 bg-gradient-to-r from-slate-700 to-slate-900 text-white py-4 rounded-2xl font-bold hover:shadow-2xl hover:scale-105 transition-all"
-              >
-                New Analysis
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* --- SIDEBAR: JOB LIBRARY --- */}
-        <div className="w-full md:w-96">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl border border-purple-100 sticky top-8">
-            <h2 className="text-xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6 flex items-center gap-3 border-b-2 border-purple-100 pb-4">
-              <Briefcase className="text-purple-600" size={24} /> Job Library
-            </h2>
-
-            {jobs.length === 0 ? (
-              <div className="text-center py-16">
-                <FileText className="mx-auto text-gray-300 mb-4" size={64} />
-                <p className="text-gray-400 text-sm italic">No saved jobs yet.<br />Create one to get started!</p>
-              </div>
-            ) : (
-              <div className="space-y-4 max-h-[520px] overflow-y-auto pr-2">
-                {jobs.map((job) => (
-                  <div
-                    key={job.id}
-                    onClick={() => selectJob(job)}
-                    className={`p-5 rounded-2xl border-2 cursor-pointer relative group transition-all ${selectedJobId === job.id
-                      ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg'
-                      : 'border-gray-200 bg-gray-50 hover:border-purple-300 hover:shadow-md'
-                      }`}
-                  >
-                    <h4 className="font-black text-gray-800 text-sm pr-8 leading-tight mb-2 uppercase">
-                      {job.title}
-                    </h4>
-                    <p className="text-xs text-gray-600 truncate font-semibold">{job.skills}</p>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); deleteJob(job.id); }}
-                      className="absolute top-5 right-4 text-gray-300 hover:text-red-500 hover:scale-110 transition-all"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <Sparkles size={16} />
+            AI-Powered Resume Analysis
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+            Find the Perfect Candidate
+            <br />
+            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              in Seconds
+            </span>
+          </h1>
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-8">
+            Match resumes against job requirements with intelligent AI analysis. Save time, reduce bias, and hire the best talent faster.
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <a
+              href="http://localhost:5173/dashboard"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl"
+            >
+              Get Started
+              <ArrowRight size={20} />
+            </a>
+            <a
+              href="#features"
+              className="inline-flex items-center gap-2 bg-white text-slate-700 px-8 py-4 rounded-lg font-semibold hover:bg-slate-50 transition-colors border border-slate-200"
+            >
+              Learn More
+            </a>
           </div>
         </div>
 
-      </div>
+        {/* Feature Preview */}
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+  <div className="p-8">
+    <video
+      src="/demo.mp4"
+      controls
+      className="w-full aspect-video rounded-xl"
+    />
+  </div>
+</div>
 
-      <footer className="mt-20 text-gray-500 text-sm font-semibold text-center bg-white p-8 rounded-3xl shadow-2xl border border-purple-100 w-full max-w-6xl">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-bold">
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="max-w-7xl mx-auto px-6 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-slate-900 mb-4">Why Choose SkillSight?</h2>
+          <p className="text-xl text-slate-600">Powerful features designed for modern recruiters</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="bg-white rounded-xl border border-slate-200 p-8 hover:shadow-lg transition-shadow">
+            <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+              <Brain className="text-blue-600" size={28} />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">AI-Powered Analysis</h3>
+            <p className="text-slate-600">
+              Advanced algorithms analyze resumes against job requirements with precision, identifying skill matches and gaps instantly.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 p-8 hover:shadow-lg transition-shadow">
+            <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6">
+              <Target className="text-green-600" size={28} />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">Accurate Matching</h3>
+            <p className="text-slate-600">
+              Get precise match scores showing exactly how well candidates align with your job requirements and skill needs.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 p-8 hover:shadow-lg transition-shadow">
+            <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+              <Zap className="text-purple-600" size={28} />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">Lightning Fast</h3>
+            <p className="text-slate-600">
+              Process hundreds of resumes in minutes. Save countless hours of manual screening and focus on the best candidates.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 p-8 hover:shadow-lg transition-shadow">
+            <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center mb-6">
+              <FileText className="text-orange-600" size={28} />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">Job Library</h3>
+            <p className="text-slate-600">
+              Save job profiles and reuse them for multiple candidates. Streamline your hiring process with organized configurations.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 p-8 hover:shadow-lg transition-shadow">
+            <div className="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center mb-6">
+              <TrendingUp className="text-indigo-600" size={28} />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">Detailed Insights</h3>
+            <p className="text-slate-600">
+              See matched and missing skills at a glance. Make informed decisions backed by comprehensive skill analysis.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 p-8 hover:shadow-lg transition-shadow">
+            <div className="w-14 h-14 bg-pink-100 rounded-xl flex items-center justify-center mb-6">
+              <Users className="text-pink-600" size={28} />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">Fair & Unbiased</h3>
+            <p className="text-slate-600">
+              Reduce unconscious bias with objective, skill-based evaluations. Focus purely on qualifications and competencies.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">How It Works</h2>
+            <p className="text-xl text-slate-600">Simple, fast, and effective</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-12">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                1
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-3">Define Job Requirements</h3>
+              <p className="text-slate-600">
+                Create a job profile with the role title and required skills. Save it to your library for reuse.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                2
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-3">Upload Resume</h3>
+              <p className="text-slate-600">
+                Upload candidate resumes in PDF format. Our AI extracts and analyzes the content automatically.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                3
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-3">Get Instant Results</h3>
+              <p className="text-slate-600">
+                Receive detailed match scores, skill breakdowns, and hiring recommendations in seconds.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-12 text-white text-center">
+          <h2 className="text-3xl font-bold mb-4">Trusted by Recruiters</h2>
+          <p className="text-blue-100 mb-12 text-lg">Making hiring faster and smarter</p>
+          
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="text-4xl font-bold mb-2">95%</div>
+              <div className="text-blue-100">Accuracy Rate</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">10x</div>
+              <div className="text-blue-100">Faster Screening</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">1000+</div>
+              <div className="text-blue-100">Resumes Analyzed</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">100%</div>
+              <div className="text-blue-100">Satisfaction</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">
+            Ready to Transform Your Hiring?
+          </h2>
+          <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+            Start analyzing resumes with AI precision today. No credit card required.
+          </p>
+          <a
+            href="http://localhost:5173/dashboard"
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl"
+          >
+            Start Analyzing Now
+            <ArrowRight size={20} />
+          </a>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="max-w-7xl mx-auto px-6 py-12 text-center border-t border-slate-200">
+        <div className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-full text-sm text-slate-600 shadow-sm mb-4">
+          <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
           BCSIT 5th Semester Project • Pokhara University • 2025
         </div>
+        <p className="text-slate-500 text-sm">
+          Built with ❤️ for smarter recruitment
+        </p>
       </footer>
     </div>
   );

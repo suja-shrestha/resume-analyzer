@@ -1,15 +1,23 @@
-import Home from './pages/home.jsx';
-import Navbar from './components/Navbar.jsx';
-import OfflineStatus from './components/OfflineStatus';
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './pages/home';
+import Dashboard from './pages/dashboard';
+import About from './pages/aboutus';
+import Analytics from './pages/analytics';
 
 function App() {
   return (
-    <div className="App">
-      <Navbar/>
-      <Home />
-      <OfflineStatus />
-    </div>
+    <Router>
+      <div className="App">
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path='/about' element={<About />} />
+          <Route path='/analytics' element={<Analytics />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
