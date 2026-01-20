@@ -1,139 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Users, Award, FileText, BarChart3, Calendar, Download, Filter, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { 
+  TrendingUp, Users, Award, FileText, BarChart3, 
+  Calendar, Download, CheckCircle, 
+  AlertCircle, Eye 
+} from 'lucide-react';
 
 export default function Analytics() {
-  // Sample data - in real app, this would come from your backend/state management
-  const [timeRange, setTimeRange] = useState('week');
-  const [analysisData] = useState([
-    { id: 1, candidate: 'John Doe', job: 'Senior Developer', score: 85, date: '2025-01-20', matched: 8, missing: 2 },
-    { id: 2, candidate: 'Jane Smith', job: 'Frontend Engineer', score: 72, date: '2025-01-19', matched: 6, missing: 3 },
-    { id: 3, candidate: 'Mike Johnson', job: 'Full Stack Dev', score: 91, date: '2025-01-19', matched: 9, missing: 1 },
-    { id: 4, candidate: 'Sarah Williams', job: 'Senior Developer', score: 68, date: '2025-01-18', matched: 5, missing: 3 },
-    { id: 5, candidate: 'Tom Brown', job: 'Backend Developer', score: 88, date: '2025-01-18', matched: 7, missing: 1 },
-    { id: 6, candidate: 'Emily Davis', job: 'Frontend Engineer', score: 79, date: '2025-01-17', matched: 6, missing: 2 },
-    { id: 7, candidate: 'Chris Wilson', job: 'Full Stack Dev', score: 95, date: '2025-01-17', matched: 10, missing: 0 },
-    { id: 8, candidate: 'Lisa Anderson', job: 'Senior Developer', score: 64, date: '2025-01-16', matched: 5, missing: 4 },
-  ]);
+  const [analysisData, setAnalysisData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const stats = {
-    totalAnalyses: analysisData.length,
-    avgScore: Math.round(analysisData.reduce((acc, curr) => acc + curr.score, 0) / analysisData.length),
-    excellentMatches: analysisData.filter(d => d.score >= 80).length,
-    recentAnalyses: analysisData.length
-  };
+  // 1. Fetch live data from your Node.js + Supabase backend
+  useEffect(() => {
+    const fetchAnalyses = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/all-analyses');
+        if (!response.ok) throw new Error("Connection failed");
+        const data = await response.json();
+        setAnalysisData(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setError("Could not connect to the database.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnalyses();
+  }, []);
+
+  // 2. Statistics Calculations
+  const totalCount = analysisData.length;
+  
+  const avgScore = totalCount > 0 
+    ? Math.round(analysisData.reduce((acc, curr) => acc + (Number(curr.score) || 0), 0) / totalCount) 
+    : 0;
+
+  const excellentMatches = analysisData.filter(d => (Number(d.score) || 0) >= 80).length;
 
   const scoreDistribution = [
-    { range: '90-100%', count: analysisData.filter(d => d.score >= 90).length, color: 'bg-green-500' },
-    { range: '80-89%', count: analysisData.filter(d => d.score >= 80 && d.score < 90).length, color: 'bg-green-400' },
-    { range: '70-79%', count: analysisData.filter(d => d.score >= 70 && d.score < 80).length, color: 'bg-yellow-500' },
-    { range: '60-69%', count: analysisData.filter(d => d.score >= 60 && d.score < 70).length, color: 'bg-orange-500' },
-    { range: 'Below 60%', count: analysisData.filter(d => d.score < 60).length, color: 'bg-red-500' },
+    { range: '90-100%', count: analysisData.filter(d => d.score >= 90).length },
+    { range: '80-89%', count: analysisData.filter(d => d.score >= 80 && d.score < 90).length },
+    { range: '70-79%', count: analysisData.filter(d => d.score >= 70 && d.score < 80).length },
+    { range: '60-69%', count: analysisData.filter(d => d.score >= 60 && d.score < 70).length },
+    { range: 'Below 60%', count: analysisData.filter(d => d.score < 60).length },
   ];
 
-  const topJobs = [...new Set(analysisData.map(d => d.job))].map(job => ({
-    title: job,
-    count: analysisData.filter(d => d.job === job).length,
-    avgScore: Math.round(analysisData.filter(d => d.job === job).reduce((acc, curr) => acc + curr.score, 0) / analysisData.filter(d => d.job === job).length)
-  })).sort((a, b) => b.count - a.count);
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-600 font-bold uppercase text-xs tracking-widest">Syncing Cloud Data...</p>
+      </div>
+    </div>
+  );
+
+  if (error) return <div className="p-20 text-center text-red-500 font-bold">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <main className="max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-slate-50 p-6 md:p-10">
+      <div className="max-w-7xl mx-auto">
+        
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Analytics Dashboard</h1>
-              <p className="text-slate-600">Track your resume analysis performance and insights</p>
+        <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">Analytics Dashboard</h1>
+            <p className="text-slate-500 font-medium italic text-sm">Real-time skill gap reports powered by Supabase Storage</p>
+          </div>
+          <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-all">
+            <Download size={16} /> Export Data
+          </button>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+              <FileText className="text-blue-600" size={20} />
             </div>
-            <div className="flex items-center gap-3">
-              <select 
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              >
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="all">All Time</option>
-              </select>
-              <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                <Download size={18} />
-                Export
-              </button>
+            <p className="text-sm font-bold text-slate-400 uppercase">Total Analyses</p>
+            <p className="text-3xl font-black text-slate-900">{totalCount}</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+              <BarChart3 className="text-purple-600" size={20} />
             </div>
+            <p className="text-sm font-bold text-slate-400 uppercase">Average Match</p>
+            <p className="text-3xl font-black text-slate-900">{avgScore}%</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+              <Award className="text-green-600" size={20} />
+            </div>
+            <p className="text-sm font-bold text-slate-400 uppercase">Excellent Fits</p>
+            <p className="text-3xl font-black text-slate-900">{excellentMatches}</p>
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <FileText className="text-blue-600" size={24} />
-              </div>
-              <TrendingUp className="text-green-500" size={20} />
-            </div>
-            <p className="text-sm text-slate-500 mb-1">Total Analyses</p>
-            <p className="text-3xl font-bold text-slate-900">{stats.totalAnalyses}</p>
-            <p className="text-xs text-green-600 font-medium mt-2">+12% from last week</p>
-          </div>
-
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <BarChart3 className="text-purple-600" size={24} />
-              </div>
-              <TrendingUp className="text-green-500" size={20} />
-            </div>
-            <p className="text-sm text-slate-500 mb-1">Average Score</p>
-            <p className="text-3xl font-bold text-slate-900">{stats.avgScore}%</p>
-            <p className="text-xs text-green-600 font-medium mt-2">+5% improvement</p>
-          </div>
-
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <Award className="text-green-600" size={24} />
-              </div>
-              <TrendingUp className="text-green-500" size={20} />
-            </div>
-            <p className="text-sm text-slate-500 mb-1">Excellent Matches</p>
-            <p className="text-3xl font-bold text-slate-900">{stats.excellentMatches}</p>
-            <p className="text-xs text-slate-500 font-medium mt-2">Score ≥ 80%</p>
-          </div>
-
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <Users className="text-orange-600" size={24} />
-              </div>
-              <Clock className="text-slate-400" size={20} />
-            </div>
-            <p className="text-sm text-slate-500 mb-1">This Week</p>
-            <p className="text-3xl font-bold text-slate-900">{stats.recentAnalyses}</p>
-            <p className="text-xs text-slate-500 font-medium mt-2">Candidates analyzed</p>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-6 mb-8">
-          {/* Score Distribution */}
-          <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-slate-900">Score Distribution</h2>
-              <Filter className="text-slate-400" size={20} />
-            </div>
-            <div className="space-y-4">
-              {scoreDistribution.map((item, index) => (
-                <div key={index}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-slate-700">{item.range}</span>
-                    <span className="text-sm font-semibold text-slate-900">{item.count} candidates</span>
+        {/* Distribution & Table */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          
+          {/* Distribution chart */}
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h2 className="text-lg font-bold mb-6 text-slate-800 uppercase tracking-wide">Score Distribution</h2>
+            <div className="space-y-5">
+              {scoreDistribution.map((item, i) => (
+                <div key={i}>
+                  <div className="flex justify-between text-[10px] font-black mb-1 uppercase text-slate-400">
+                    <span>{item.range}</span>
+                    <span>{item.count} Candidates</span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-3">
+                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                     <div 
-                      className={`${item.color} h-3 rounded-full transition-all duration-500`}
-                      style={{ width: `${(item.count / stats.totalAnalyses) * 100}%` }}
+                      className="bg-blue-600 h-full rounded-full transition-all duration-1000" 
+                      style={{ width: `${(item.count / (totalCount || 1)) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -141,111 +122,75 @@ export default function Analytics() {
             </div>
           </div>
 
-          {/* Top Job Roles */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-6">Top Job Roles</h2>
-            <div className="space-y-4">
-              {topJobs.map((job, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-600 font-bold text-sm">#{index + 1}</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{job.title}</p>
-                      <p className="text-xs text-slate-500">{job.count} analyses</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-slate-900">{job.avgScore}%</p>
-                    <p className="text-xs text-slate-500">avg</p>
-                  </div>
-                </div>
-              ))}
+          {/* Data Table */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-5 border-b bg-slate-50 flex justify-between items-center">
+              <h3 className="font-bold text-slate-800 uppercase text-xs tracking-widest">Recent Analysis Logs</h3>
+              <span className="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-1 rounded-md uppercase">Live</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
+                    <th className="px-6 py-4 tracking-tighter">Job Role</th>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Score</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-center">Resume</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {analysisData.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 font-bold text-slate-700 text-sm">{item.job_title}</td>
+                      <td className="px-6 py-4 text-[11px] font-bold text-slate-400">
+                        {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`font-black text-sm ${item.score >= 80 ? 'text-green-600' : 'text-blue-600'}`}>
+                          {item.score}%
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                         <div className="flex gap-1">
+                            <span className="px-2 py-1 bg-green-50 text-green-700 rounded text-[9px] font-bold border border-green-100">
+                              {item.matched_skills?.length || 0} MATCHED
+                            </span>
+                            <span className="px-2 py-1 bg-red-50 text-red-700 rounded text-[9px] font-bold border border-red-100">
+                              {item.missing_skills?.length || 0} GAP
+                            </span>
+                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {item.resume_url ? (
+                          <a 
+                            href={item.resume_url} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-bold hover:bg-blue-600 transition-all shadow-md active:scale-95"
+                          >
+                            <Eye size={12} /> View PDF
+                          </a>
+                        ) : (
+                          <span className="text-slate-300 text-[10px] italic">No File</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {analysisData.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="p-10 text-center text-slate-400 italic text-sm tracking-wide">
+                        No analysis history found in cloud storage.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
 
-        {/* Recent Analysis Table */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">Recent Analyses</h2>
-            <p className="text-sm text-slate-500 mt-1">Detailed view of recent resume evaluations</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Candidate</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Job Role</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Skills</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Score</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {analysisData.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-semibold">
-                          {item.candidate.charAt(0)}
-                        </div>
-                        <span className="text-sm font-medium text-slate-900">{item.candidate}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-700">{item.job}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <Calendar size={14} />
-                        {item.date}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
-                          <CheckCircle size={12} />
-                          {item.matched}
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
-                          <AlertCircle size={12} />
-                          {item.missing}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 w-20 bg-slate-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full ${
-                              item.score >= 80 ? 'bg-green-500' :
-                              item.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                            }`}
-                            style={{ width: `${item.score}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-semibold text-slate-900 w-12">{item.score}%</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                        item.score >= 80 ? 'bg-green-100 text-green-700' :
-                        item.score >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {item.score >= 80 ? 'Excellent' : item.score >= 60 ? 'Good' : 'Fair'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
